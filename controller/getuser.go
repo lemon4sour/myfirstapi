@@ -36,17 +36,17 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	account := data.GetFromID(userId)
 
-	if account == nil {
+	if len(account) == 0 {
 		InvalidResponse(w, "user not found")
 		return
 	}
 
 	output := templateUserData{}
 	output.Status = true
-	output.Result.Id = account.Id
-	output.Result.Username = account.Username
-	output.Result.Name = account.Name
-	output.Result.Surname = account.Surname
+	output.Result.Id = userId
+	output.Result.Username = account["username"]
+	output.Result.Name = account["name"]
+	output.Result.Surname = account["surname"]
 
 	outputJSON, _ := json.Marshal(output)
 	w.Write(outputJSON)
