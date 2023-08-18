@@ -28,7 +28,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := data.Add(inputJSONMap)
+	id, err := data.Add(inputJSONMap)
 	if err != nil {
 		InvalidResponse(w, err.Error())
 		return
@@ -36,8 +36,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	output := templateRegisterSuccess{}
 	output.Status = true
-	output.Result.Id = account.Id
-	output.Result.Username = account.Username
+	output.Result.Id = id
+	output.Result.Username = inputJSONMap["username"].(string)
 
 	outputJSON, _ := json.Marshal(output)
 	w.Write(outputJSON)
