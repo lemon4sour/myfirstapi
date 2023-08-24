@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"io"
 	"loginsystem/data"
 	"net/http"
+	"strconv"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -29,25 +29,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, id := data.GetFromName(inputJSONMap["username"].(string))
-	if account == nil {
-		InvalidResponse(w, "user not found")
-		return
-	}
-
-	hashComputer := sha256.New()
-	hashComputer.Write(([]byte)(inputJSONMap["password"].(string)))
-	println(account["password"])
-	println(string(hashComputer.Sum(nil)))
-	println(string(hashComputer.Sum(nil)) == account["password"])
-	if string(hashComputer.Sum(nil)) != account["password"] {
-		InvalidResponse(w, "incorrect password")
+	account, err := data.LoginAttempt(inputJSONMap["username"].(string), (inputJSONMap["password"].(string)))
+	if err != nil {
+		InvalidResponse(w, err.Error())
 		return
 	}
 
 	output := templateLoginSuccess{}
 	output.Status = true
-	output.Result.Id = id
+	output.Result.Id, _ = strconv.Atoi(account["id"])
 	output.Result.Username = account["username"]
 
 	outputJSON, _ := json.Marshal(output)

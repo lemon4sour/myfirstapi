@@ -36,7 +36,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	output := templateRegisterSuccess{}
 	output.Status = true
-	output.Result.Id = id
+	output.Result.Id = int(id)
 	output.Result.Username = inputJSONMap["username"].(string)
 
 	outputJSON, _ := json.Marshal(output)

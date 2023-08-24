@@ -23,9 +23,11 @@ func JSONtoMap(data []byte) (map[string]any, error) {
 }
 
 func MatchesTemplate(data map[string]any, template map[string]any) bool {
-	if len(data) != len(template) {
-		return false
-	}
+	/*
+		if len(data) != len(template) {
+			return false
+		}
+	*/
 	for key, tvalue := range template {
 		value, exists := data[key]
 		if !exists {

@@ -16,13 +16,13 @@ func init() {
 	client = redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "", DB: 0})
 }
 
-func generateId() string {
-	result, _ := client.DBSize(ctx).Result()
-	return strconv.FormatInt(result+1, 10)
+func generateId() int64 {
+	result, _ := client.Incr(ctx, "users:count").Result()
+	return result
 }
 
-func Add(newAccountData map[string]any) (int, error) {
-	if hasDuplicate(newAccountData["username"].(string)) {
+func Add(newAccountData map[string]any) (int64, error) {
+	if usernameExists(newAccountData["username"].(string)) {
 		return 0, errors.New("name taken")
 	}
 
@@ -31,39 +31,49 @@ func Add(newAccountData map[string]any) (int, error) {
 	newAccountData["password"] = hashComputer.Sum(nil)
 
 	id := generateId()
+	newAccountData["id"] = id
 
-	client.HSet(ctx, id, newAccountData)
+	client.HSet(ctx, "user:"+strconv.FormatInt(id, 10), newAccountData)
+	client.HSet(ctx, "userid:dictionary", newAccountData["username"], id)
 
-	out, _ := strconv.Atoi(id)
-
-	return out, nil
+	return id, nil
 }
 
-func hasDuplicate(username string) bool {
-	keys, _, _ := client.ScanType(ctx, 0, "", 0, "hash").Result()
-	for _, key := range keys {
-		un, _ := client.HGet(ctx, key, "username").Result()
-		if username == un {
-			return true
-		}
-	}
-	return false
-}
-
-func GetFromName(username string) (map[string]string, int) {
-	keys, _, _ := client.ScanType(ctx, 0, "", 0, "hash").Result()
-	for _, key := range keys {
-		un, _ := client.HGet(ctx, key, "username").Result()
-		if username == un {
-			user, _ := client.HGetAll(ctx, key).Result()
-			id, _ := strconv.Atoi(key)
-			return user, id
-		}
-	}
-	return nil, 0
-}
-
-func GetFromID(id int) map[string]string {
-	out, _ := client.HGetAll(ctx, strconv.FormatInt(int64(id), 10)).Result()
+func usernameExists(username string) bool {
+	out, _ := client.HExists(ctx, "userid:dictionary", username).Result()
 	return out
+}
+
+func getId(username string) int {
+	id, _ := client.HGet(ctx, "userid:dictionary", username).Result()
+	out, _ := strconv.Atoi(id)
+	return out
+}
+
+func GetUser(id int) map[string]string {
+	out, _ := client.HGetAll(ctx, "user:"+strconv.FormatInt(int64(id), 10)).Result()
+	return out
+}
+
+func LoginAttempt(username string, password string) (map[string]string, error) {
+	id := getId(username)
+	account := GetUser(id)
+	if len(account) == 0 {
+		return nil, errors.New("user not found")
+	}
+
+	hashComputer := sha256.New()
+	hashComputer.Write(([]byte)(password))
+	if string(hashComputer.Sum(nil)) != account["password"] {
+		return nil, errors.New("incorrect password")
+	}
+
+	return account, nil
+}
+
+func Rename(id int, data map[string]string) map[string]string {
+	key := "user:" + strconv.FormatInt(int64(id), 10)
+	client.HSet(ctx, key, data).Result()
+	newData, _ := client.HGetAll(ctx, key).Result()
+	return newData
 }

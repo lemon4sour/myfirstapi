@@ -34,7 +34,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account := data.GetFromID(userId)
+	account := data.GetUser(userId)
 
 	if len(account) == 0 {
 		InvalidResponse(w, "user not found")
