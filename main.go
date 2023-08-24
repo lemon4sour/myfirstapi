@@ -12,6 +12,6 @@ func main() {
 	sm.Handle("/register", http.HandlerFunc(controller.Register))
 	sm.Handle("/login", http.HandlerFunc(controller.Login))
 	sm.Handle("/user/", http.HandlerFunc(controller.GetUser))
-	sm.Handle("/rename", http.HandlerFunc(controller.Rename))
+	sm.Handle("/updateuser", http.HandlerFunc(controller.UpdateUser))
 	http.ListenAndServe(PORT, sm)
 }

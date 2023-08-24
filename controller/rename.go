@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func Rename(w http.ResponseWriter, r *http.Request) {
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -45,13 +45,14 @@ func Rename(w http.ResponseWriter, r *http.Request) {
 	if exists && (reflect.TypeOf(name) == reflect.TypeOf("")) {
 		dataMap["name"] = name.(string)
 	}
+
 	surname, exists := inputJSONMap["surname"]
-	if exists && (reflect.TypeOf(name) == reflect.TypeOf("")) {
+	if exists && (reflect.TypeOf(surname) == reflect.TypeOf("")) {
 		dataMap["surname"] = surname.(string)
 	}
 
 	id, _ := strconv.Atoi(account["id"])
-	account = data.Rename(id, dataMap)
+	account = data.UpdateUser(id, dataMap)
 
 	output := templateUserData{}
 	output.Status = true

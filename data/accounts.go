@@ -34,18 +34,18 @@ func Add(newAccountData map[string]any) (int64, error) {
 	newAccountData["id"] = id
 
 	client.HSet(ctx, "user:"+strconv.FormatInt(id, 10), newAccountData)
-	client.HSet(ctx, "userid:dictionary", newAccountData["username"], id)
+	client.Set(ctx, "userid:"+newAccountData["username"].(string), id, 0)
 
 	return id, nil
 }
 
 func usernameExists(username string) bool {
-	out, _ := client.HExists(ctx, "userid:dictionary", username).Result()
-	return out
+	out, _ := client.Exists(ctx, "userid:"+username).Result()
+	return out == 1
 }
 
 func getId(username string) int {
-	id, _ := client.HGet(ctx, "userid:dictionary", username).Result()
+	id, _ := client.Get(ctx, "userid:"+username).Result()
 	out, _ := strconv.Atoi(id)
 	return out
 }
@@ -71,7 +71,7 @@ func LoginAttempt(username string, password string) (map[string]string, error) {
 	return account, nil
 }
 
-func Rename(id int, data map[string]string) map[string]string {
+func UpdateUser(id int, data map[string]string) map[string]string {
 	key := "user:" + strconv.FormatInt(int64(id), 10)
 	client.HSet(ctx, key, data).Result()
 	newData, _ := client.HGetAll(ctx, key).Result()
