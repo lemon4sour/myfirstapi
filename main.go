@@ -5,13 +5,15 @@ import (
 	"net/http"
 )
 
-const PORT = ":8080"
+const port = ":8080"
 
 func main() {
 	sm := http.NewServeMux()
 	sm.Handle("/register", http.HandlerFunc(controller.Register))
 	sm.Handle("/login", http.HandlerFunc(controller.Login))
-	sm.Handle("/user/", http.HandlerFunc(controller.GetUser))
-	sm.Handle("/updateuser", http.HandlerFunc(controller.UpdateUser))
-	http.ListenAndServe(PORT, sm)
+	sm.Handle("/user/", http.HandlerFunc(controller.FetchUser))
+	sm.Handle("/rename", http.HandlerFunc(controller.Rename))
+	sm.Handle("/updatescore", http.HandlerFunc(controller.UpdateScore))
+	sm.Handle("/leaderboard", http.HandlerFunc(controller.Leaderboard))
+	http.ListenAndServe(port, sm)
 }

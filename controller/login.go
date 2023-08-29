@@ -16,30 +16,42 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 
-	inputJSON, _ := io.ReadAll(r.Body)
+	inputJSON, err := io.ReadAll(r.Body)
+	if err != nil {
+		InvalidInputResponse(w, err.Error())
+		return
+	}
 
 	inputJSONMap, err := JSONtoMap(inputJSON)
 	if err != nil {
-		InvalidResponse(w, err.Error())
+		InvalidInputResponse(w, err.Error())
 		return
 	}
 
 	if !MatchesTemplate(inputJSONMap, templateLogInRequest) {
-		InvalidResponse(w, "invalid JSON parameters")
+		InvalidInputResponse(w, "invalid JSON parameters")
 		return
 	}
 
 	account, err := data.LoginAttempt(inputJSONMap["username"].(string), (inputJSONMap["password"].(string)))
 	if err != nil {
-		InvalidResponse(w, err.Error())
+		InvalidInputResponse(w, err.Error())
 		return
 	}
 
 	output := templateLoginSuccess{}
 	output.Status = true
-	output.Result.Id, _ = strconv.Atoi(account["id"])
+	output.Result.ID, err = strconv.Atoi(account["id"])
 	output.Result.Username = account["username"]
+	if err != nil {
+		ServerErrorResponse(w, err.Error())
+		return
+	}
 
-	outputJSON, _ := json.Marshal(output)
+	outputJSON, err := json.Marshal(output)
+	if err != nil {
+		ServerErrorResponse(w, err.Error())
+		return
+	}
 	w.Write(outputJSON)
 }

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func Register(w http.ResponseWriter, r *http.Request) {
+func Leaderboard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -27,21 +27,28 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !MatchesTemplate(inputJSONMap, templateRegisterRequest) {
+	if !MatchesTemplate(inputJSONMap, templateLeaderboardRequest) {
 		InvalidInputResponse(w, "invalid JSON parameters")
 		return
 	}
 
-	id, err := data.AddUser(inputJSONMap)
+	page := int(inputJSONMap["page"].(float64))
+	count := int(inputJSONMap["count"].(float64))
+
+	leaderboardList, err := data.LeaderboardPage(page, count)
 	if err != nil {
 		InvalidInputResponse(w, err.Error())
 		return
 	}
 
-	output := templateRegisterSuccess{}
+	output := templateLeaderboardPage{}
 	output.Status = true
-	output.Result.ID = int(id)
-	output.Result.Username = inputJSONMap["username"].(string)
+	output.Result = make([]leaderboardPlacement, len(leaderboardList))
+	for i, u := range leaderboardList {
+		output.Result[i].ID = u.ID
+		output.Result[i].Rank = u.Rank
+		output.Result[i].Score = u.Score
+	}
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {

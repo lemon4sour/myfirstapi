@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func GetUser(w http.ResponseWriter, r *http.Request) {
+func FetchUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 
@@ -24,30 +24,38 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if parsed[2] == "" {
-		InvalidResponse(w, "id not provided")
+		InvalidInputResponse(w, "id not provided")
 		return
 	}
 
-	userId, err := strconv.Atoi(parsed[2])
+	userID, err := strconv.Atoi(parsed[2])
 	if err != nil {
-		InvalidResponse(w, err.Error())
+		InvalidInputResponse(w, err.Error())
 		return
 	}
 
-	account := data.GetUser(userId)
+	account, err := data.FetchUser(userID)
+	if err != nil {
+		InvalidInputResponse(w, err.Error())
+		return
+	}
 
 	if len(account) == 0 {
-		InvalidResponse(w, "user not found")
+		InvalidInputResponse(w, "user not found")
 		return
 	}
 
 	output := templateUserData{}
 	output.Status = true
-	output.Result.Id = userId
+	output.Result.ID = userID
 	output.Result.Username = account["username"]
 	output.Result.Name = account["name"]
 	output.Result.Surname = account["surname"]
 
-	outputJSON, _ := json.Marshal(output)
+	outputJSON, err := json.Marshal(output)
+	if err != nil {
+		ServerErrorResponse(w, err.Error())
+		return
+	}
 	w.Write(outputJSON)
 }
