@@ -6,9 +6,16 @@ import (
 	"reflect"
 )
 
-func InvalidResponse(w http.ResponseWriter, message string) {
+func InvalidInputResponse(w http.ResponseWriter, message string) {
 	w.WriteHeader(http.StatusBadRequest)
 	response := templateErrorResponse{Status: false, Message: "400 Bad Request - " + message}
+	mresponse, _ := json.Marshal(response)
+	w.Write(mresponse)
+}
+
+func ServerErrorResponse(w http.ResponseWriter, message string) {
+	w.WriteHeader(http.StatusInternalServerError)
+	response := templateErrorResponse{Status: false, Message: "500 Internal Server Error - " + message}
 	mresponse, _ := json.Marshal(response)
 	w.Write(mresponse)
 }
@@ -23,9 +30,11 @@ func JSONtoMap(data []byte) (map[string]any, error) {
 }
 
 func MatchesTemplate(data map[string]any, template map[string]any) bool {
-	if len(data) != len(template) {
-		return false
-	}
+	/*
+		if len(data) != len(template) {
+			return false
+		}
+	*/
 	for key, tvalue := range template {
 		value, exists := data[key]
 		if !exists {

@@ -15,7 +15,7 @@ var templateRegisterRequest = map[string]any{
 type templateRegisterSuccess struct {
 	Status bool `json:"status"`
 	Result struct {
-		Id       int    `json:"id"`
+		ID       int    `json:"id"`
 		Username string `json:"username"`
 	} `json:"result"`
 }
@@ -28,7 +28,7 @@ var templateLogInRequest = map[string]any{
 type templateLoginSuccess struct {
 	Status bool `json:"status"`
 	Result struct {
-		Id       int    `json:"id"`
+		ID       int    `json:"id"`
 		Username string `json:"username"`
 	} `json:"result"`
 }
@@ -36,9 +36,46 @@ type templateLoginSuccess struct {
 type templateUserData struct {
 	Status bool `json:"status"`
 	Result struct {
-		Id       int    `json:"id"`
+		ID       int    `json:"id"`
 		Username string `json:"username"`
 		Name     string `json:"name"`
 		Surname  string `json:"surname"`
 	} `json:"result"`
+}
+
+var templateGameResults = map[string]any{
+	"userid1": 0.0,
+	"userid2": 0.0,
+	"score1":  0.0,
+	"score2":  0.0,
+}
+
+type templateScoreUpdateSuccess struct {
+	Status bool `json:"status"`
+	User1  struct {
+		ID       int     `json:"id"`
+		Username string  `json:"username"`
+		Score    float64 `json:"score"`
+	} `json:"user1"`
+	User2 struct {
+		ID       int     `json:"id"`
+		Username string  `json:"username"`
+		Score    float64 `json:"score"`
+	} `json:"user2"`
+}
+
+var templateLeaderboardRequest = map[string]any{
+	"page":  0.0,
+	"count": 0.0,
+}
+
+type leaderboardPlacement struct {
+	ID    int     `json:"id"`
+	Score float64 `json:"score"`
+	Rank  int     `json:"rank"`
+}
+
+type templateLeaderboardPage struct {
+	Status bool                   `json:"status"`
+	Result []leaderboardPlacement `json:"result"`
 }

@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"io"
 	"loginsystem/data"
 	"net/http"
+	"strconv"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -16,40 +16,42 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 
-	inputJSON, _ := io.ReadAll(r.Body)
+	inputJSON, err := io.ReadAll(r.Body)
+	if err != nil {
+		InvalidInputResponse(w, err.Error())
+		return
+	}
 
 	inputJSONMap, err := JSONtoMap(inputJSON)
 	if err != nil {
-		InvalidResponse(w, err.Error())
+		InvalidInputResponse(w, err.Error())
 		return
 	}
 
 	if !MatchesTemplate(inputJSONMap, templateLogInRequest) {
-		InvalidResponse(w, "invalid JSON parameters")
+		InvalidInputResponse(w, "invalid JSON parameters")
 		return
 	}
 
-	account, id := data.GetFromName(inputJSONMap["username"].(string))
-	if account == nil {
-		InvalidResponse(w, "user not found")
-		return
-	}
-
-	hashComputer := sha256.New()
-	hashComputer.Write(([]byte)(inputJSONMap["password"].(string)))
-	println(account["password"])
-	println(string(hashComputer.Sum(nil)))
-	println(string(hashComputer.Sum(nil)) == account["password"])
-	if string(hashComputer.Sum(nil)) != account["password"] {
-		InvalidResponse(w, "incorrect password")
+	account, err := data.LoginAttempt(inputJSONMap["username"].(string), (inputJSONMap["password"].(string)))
+	if err != nil {
+		InvalidInputResponse(w, err.Error())
 		return
 	}
 
 	output := templateLoginSuccess{}
 	output.Status = true
-	output.Result.Id = id
+	output.Result.ID, err = strconv.Atoi(account["id"])
 	output.Result.Username = account["username"]
+	if err != nil {
+		ServerErrorResponse(w, err.Error())
+		return
+	}
 
-	outputJSON, _ := json.Marshal(output)
+	outputJSON, err := json.Marshal(output)
+	if err != nil {
+		ServerErrorResponse(w, err.Error())
+		return
+	}
 	w.Write(outputJSON)
 }
