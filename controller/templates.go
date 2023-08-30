@@ -79,3 +79,20 @@ type templateLeaderboardPage struct {
 	Status bool                   `json:"status"`
 	Result []leaderboardPlacement `json:"result"`
 }
+
+var templateSimulationParams = map[string]any{
+	"usercount": 0.0,
+}
+
+type userData struct {
+	ID       int     `json:"id"`
+	Score    float64 `json:"score"`
+	Username string  `json:"username"`
+	Name     string  `json:"name"`
+	Surname  string  `json:"surname"`
+}
+
+type templateSimulationResult struct {
+	Status bool       `json:"status"`
+	Result []userData `json:"result"`
+}

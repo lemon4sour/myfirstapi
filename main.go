@@ -13,7 +13,8 @@ func main() {
 	sm.Handle("/login", http.HandlerFunc(controller.Login))
 	sm.Handle("/user/", http.HandlerFunc(controller.FetchUser))
 	sm.Handle("/rename", http.HandlerFunc(controller.Rename))
-	sm.Handle("/updatescore", http.HandlerFunc(controller.UpdateScore))
+	sm.Handle("/gameresult", http.HandlerFunc(controller.GameResult))
 	sm.Handle("/leaderboard", http.HandlerFunc(controller.Leaderboard))
+	sm.Handle("/simulate", http.HandlerFunc(controller.Simulate))
 	http.ListenAndServe(port, sm)
 }
