@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func UpdateScore(w http.ResponseWriter, r *http.Request) {
+func GameResult(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -37,14 +37,7 @@ func UpdateScore(w http.ResponseWriter, r *http.Request) {
 	score1 := inputJSONMap["score1"].(float64)
 	score2 := inputJSONMap["score2"].(float64)
 
-	if score1 > score2 {
-		data.AddScore(uid1, 3)
-	} else if score1 < score2 {
-		data.AddScore(uid2, 3)
-	} else {
-		data.AddScore(uid1, 1)
-		data.AddScore(uid2, 1)
-	}
+	ConcludeGame(uid1, uid2, score1, score2)
 
 	output := templateScoreUpdateSuccess{}
 	output.Status = true

@@ -156,3 +156,44 @@ func LeaderboardPage(page int, count int) ([]LeaderboardPlacement, error) {
 
 	return output, nil
 }
+
+var constantPassword = "1234567"
+
+func GenerateUser() (int64, error) {
+	newAccountData := make(map[string]any)
+
+	id, err := generateID()
+	if err != nil {
+		return 0, err
+	}
+	username := "player_" + strconv.FormatInt(id, 10)
+	newAccountData["username"] = username
+
+	encryptedPassword, err := encryptPassword(constantPassword)
+	if err != nil {
+		return 0, err
+	}
+	newAccountData["password"] = encryptedPassword
+
+	randName := generateName()
+	newAccountData["name"] = randName
+	randName = generateName()
+	newAccountData["surname"] = randName
+
+	_, err = client.HSet(ctx, "user:"+strconv.FormatInt(id, 10), newAccountData).Result()
+	if err != nil {
+		return 0, err
+	}
+	_, err = client.Set(ctx, "userid:"+newAccountData["username"].(string), id, 0).Result()
+	if err != nil {
+		return 0, err
+	}
+
+	AddScore(int(id), 0)
+
+	return id, nil
+}
+
+func generateName() string {
+	return "Jonah"
+}

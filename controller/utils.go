@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"loginsystem/data"
 	"net/http"
 	"reflect"
 )
@@ -45,4 +46,15 @@ func MatchesTemplate(data map[string]any, template map[string]any) bool {
 		}
 	}
 	return true
+}
+
+func ConcludeGame(userid1, userid2 int, score1, score2 float64) {
+	if score1 > score2 {
+		data.AddScore(userid1, 3)
+	} else if score1 < score2 {
+		data.AddScore(userid2, 3)
+	} else {
+		data.AddScore(userid1, 1)
+		data.AddScore(userid2, 1)
+	}
 }
