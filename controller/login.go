@@ -44,13 +44,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	output.Result.ID, err = strconv.Atoi(account["id"])
 	output.Result.Username = account["username"]
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	w.Write(outputJSON)

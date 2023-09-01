@@ -52,7 +52,7 @@ func Leaderboard(w http.ResponseWriter, r *http.Request) {
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	w.Write(outputJSON)

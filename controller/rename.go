@@ -56,12 +56,12 @@ func Rename(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(account["id"])
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	account, err = data.UpdateUser(id, dataMap)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 
@@ -74,7 +74,7 @@ func Rename(w http.ResponseWriter, r *http.Request) {
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	w.Write(outputJSON)

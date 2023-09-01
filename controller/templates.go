@@ -53,12 +53,12 @@ var templateGameResults = map[string]any{
 type templateScoreUpdateSuccess struct {
 	Status bool `json:"status"`
 	User1  struct {
-		ID       int     `json:"id"`
+		ID       int64   `json:"id"`
 		Username string  `json:"username"`
 		Score    float64 `json:"score"`
 	} `json:"user1"`
 	User2 struct {
-		ID       int     `json:"id"`
+		ID       int64   `json:"id"`
 		Username string  `json:"username"`
 		Score    float64 `json:"score"`
 	} `json:"user2"`

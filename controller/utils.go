@@ -2,19 +2,27 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"loginsystem/data"
 	"net/http"
+	"os"
 	"reflect"
 )
 
+func init() {
+	log.SetOutput(os.Stdout)
+}
+
 func InvalidInputResponse(w http.ResponseWriter, message string) {
+	log.Println(message)
 	w.WriteHeader(http.StatusBadRequest)
 	response := templateErrorResponse{Status: false, Message: "400 Bad Request - " + message}
 	mresponse, _ := json.Marshal(response)
 	w.Write(mresponse)
 }
 
-func ServerErrorResponse(w http.ResponseWriter, message string) {
+func ServerError(w http.ResponseWriter, message string) {
+	log.Println(message)
 	w.WriteHeader(http.StatusInternalServerError)
 	response := templateErrorResponse{Status: false, Message: "500 Internal Server Error - " + message}
 	mresponse, _ := json.Marshal(response)
@@ -48,7 +56,7 @@ func MatchesTemplate(data map[string]any, template map[string]any) bool {
 	return true
 }
 
-func ConcludeGame(userid1, userid2 int, score1, score2 float64) {
+func ConcludeGame(userid1, userid2 int64, score1, score2 float64) {
 	if score1 > score2 {
 		data.AddScore(userid1, 3)
 	} else if score1 < score2 {

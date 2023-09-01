@@ -32,8 +32,8 @@ func GameResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid1 := int(inputJSONMap["userid1"].(float64))
-	uid2 := int(inputJSONMap["userid2"].(float64))
+	uid1 := int64(inputJSONMap["userid1"].(float64))
+	uid2 := int64(inputJSONMap["userid2"].(float64))
 	score1 := inputJSONMap["score1"].(float64)
 	score2 := inputJSONMap["score2"].(float64)
 
@@ -44,7 +44,7 @@ func GameResult(w http.ResponseWriter, r *http.Request) {
 	output.User1.ID = uid1
 	user, err := data.FetchUser(uid1)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	output.User1.Username = user["username"]
@@ -52,7 +52,7 @@ func GameResult(w http.ResponseWriter, r *http.Request) {
 	output.User2.ID = uid2
 	user, err = data.FetchUser(uid2)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	output.User2.Username = user["username"]
@@ -60,7 +60,7 @@ func GameResult(w http.ResponseWriter, r *http.Request) {
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	w.Write(outputJSON)

@@ -32,7 +32,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := data.AddUser(inputJSONMap)
+	user := data.User{}
+	user.Username = inputJSONMap["username"].(string)
+	user.Password = ([]byte)(inputJSONMap["password"].(string))
+	user.Name = inputJSONMap["name"].(string)
+	user.Surname = inputJSONMap["surname"].(string)
+
+	id, err := data.AddUser(user)
 	if err != nil {
 		InvalidInputResponse(w, err.Error())
 		return
@@ -45,7 +51,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	w.Write(outputJSON)

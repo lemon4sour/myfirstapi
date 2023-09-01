@@ -34,7 +34,7 @@ func FetchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := data.FetchUser(userID)
+	account, err := data.FetchUser(int64(userID))
 	if err != nil {
 		InvalidInputResponse(w, err.Error())
 		return
@@ -54,7 +54,7 @@ func FetchUser(w http.ResponseWriter, r *http.Request) {
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	w.Write(outputJSON)

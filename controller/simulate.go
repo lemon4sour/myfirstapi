@@ -38,17 +38,17 @@ func Simulate(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < userCount; i++ {
 		id, err := data.GenerateUser()
 		if err != nil {
-			ServerErrorResponse(w, err.Error())
+			ServerError(w, err.Error())
 			return
 		}
 		userList = append(userList, id)
 	}
+
 	for i := 0; i < userCount; i++ {
 		for j := i + 1; j < userCount; j++ {
 			score1 := rand.Float64() * 10
 			score2 := rand.Float64() * 10
-
-			ConcludeGame(int(userList[i]), int(userList[j]), score1, score2)
+			ConcludeGame(userList[i], userList[j], score1, score2)
 		}
 	}
 
@@ -56,21 +56,21 @@ func Simulate(w http.ResponseWriter, r *http.Request) {
 	output.Status = true
 	output.Result = make([]userData, userCount)
 	for i, userID := range userList {
-		user, err := data.FetchUser(int(userID))
+		user, err := data.FetchUser(userID)
 		if err != nil {
-			ServerErrorResponse(w, err.Error())
+			ServerError(w, err.Error())
 			return
 		}
 		output.Result[i].ID = int(userID)
 		output.Result[i].Name = user["name"]
 		output.Result[i].Surname = user["surname"]
 		output.Result[i].Username = user["username"]
-		output.Result[i].Score = data.FetchScore(int(userID))
+		output.Result[i].Score = data.FetchScore(userID)
 	}
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {
-		ServerErrorResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
 	w.Write(outputJSON)
