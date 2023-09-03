@@ -9,11 +9,11 @@ import (
 	redis "github.com/redis/go-redis/v9"
 )
 
-var client *redis.Client
+var redisDB *redis.Client
 var ctx = context.Background()
 
 func init() {
-	client = redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "", DB: 0})
+	redisDB = redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "", DB: 0})
 }
 
 func encryptPassword(password string) ([]byte, error) {
@@ -26,7 +26,7 @@ func encryptPassword(password string) ([]byte, error) {
 }
 
 func checkDuplicate(username string) error {
-	out, err := client.Exists(ctx, "user:"+username+":id").Result()
+	out, err := redisDB.Exists(ctx, "user:"+username+":id").Result()
 	if err != nil {
 		return err
 	}
@@ -61,12 +61,11 @@ func LoginAttempt(username string, password string) (map[string]string, error) {
 }
 
 func uploadUser(u User) error {
-	err := client.HSet(ctx, "user:"+strconv.FormatInt(u.ID, 10), u).Err()
+	err := redisDB.HSet(ctx, "user:"+strconv.FormatInt(u.ID, 10), u).Err()
 	if err != nil {
 		return err
 	}
-	err = client.Set(ctx, "user:"+u.Username+":id", u.ID, 0).Err()
-	if err != nil {
+	if err := redisDB.Set(ctx, "user:"+u.Username+":id", u.ID, 0).Err(); err != nil {
 		return err
 	}
 	AddScore(u.ID, 0)

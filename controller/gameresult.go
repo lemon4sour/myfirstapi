@@ -2,40 +2,37 @@ package controller
 
 import (
 	"encoding/json"
-	"io"
 	"loginsystem/data"
 	"net/http"
 )
 
 func GameResult(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 
-	inputJSON, err := io.ReadAll(r.Body)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	_, verified := verifyToken(w, r)
+	if !verified {
 		return
 	}
 
-	inputJSONMap, err := JSONtoMap(inputJSON)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
 		return
 	}
 
-	if !MatchesTemplate(inputJSONMap, templateGameResults) {
-		InvalidInputResponse(w, "invalid JSON parameters")
+	inputMap, exists := getMap(w, r)
+	if !exists {
 		return
 	}
 
-	uid1 := int64(inputJSONMap["userid1"].(float64))
-	uid2 := int64(inputJSONMap["userid2"].(float64))
-	score1 := inputJSONMap["score1"].(float64)
-	score2 := inputJSONMap["score2"].(float64)
+	if !MatchesTemplate(inputMap, templateGameResults) {
+		InvalidInput(w, "invalid JSON parameters")
+		return
+	}
+
+	uid1 := int64(inputMap["userid1"].(float64))
+	uid2 := int64(inputMap["userid2"].(float64))
+	score1 := inputMap["score1"].(float64)
+	score2 := inputMap["score2"].(float64)
 
 	ConcludeGame(uid1, uid2, score1, score2)
 

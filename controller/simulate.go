@@ -2,38 +2,36 @@ package controller
 
 import (
 	"encoding/json"
-	"io"
 	"loginsystem/data"
+	"math"
 	"math/rand"
 	"net/http"
 )
 
 func Simulate(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 
-	inputJSON, err := io.ReadAll(r.Body)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	_, verified := verifyToken(w, r)
+	if !verified {
 		return
 	}
 
-	inputJSONMap, err := JSONtoMap(inputJSON)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
 		return
 	}
 
-	if !MatchesTemplate(inputJSONMap, templateSimulationParams) {
-		InvalidInputResponse(w, "invalid JSON parameters")
+	inputMap, exists := getMap(w, r)
+	if !exists {
 		return
 	}
 
-	userCount := int(inputJSONMap["usercount"].(float64))
+	if !MatchesTemplate(inputMap, templateSimulationParams) {
+		InvalidInput(w, "invalid JSON parameters")
+		return
+	}
+
+	userCount := int(inputMap["usercount"].(float64))
 	userList := make([]int64, 0)
 	for i := 0; i < userCount; i++ {
 		id, err := data.GenerateUser()
@@ -46,8 +44,8 @@ func Simulate(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < userCount; i++ {
 		for j := i + 1; j < userCount; j++ {
-			score1 := rand.Float64() * 10
-			score2 := rand.Float64() * 10
+			score1 := math.Floor(rand.Float64() * 10)
+			score2 := math.Floor(rand.Float64() * 10)
 			ConcludeGame(userList[i], userList[j], score1, score2)
 		}
 	}

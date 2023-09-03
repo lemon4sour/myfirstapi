@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"io"
 	"loginsystem/data"
 	"net/http"
 	"strconv"
@@ -10,34 +9,39 @@ import (
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
+		methodNotAllowed(w)
 		return
 	}
 
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 
-	inputJSON, err := io.ReadAll(r.Body)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	inputMap, exists := getMap(w, r)
+	if !exists {
 		return
 	}
 
-	inputJSONMap, err := JSONtoMap(inputJSON)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	if !MatchesTemplate(inputMap, templateLogInRequest) {
+		InvalidInput(w, "invalid JSON parameters")
 		return
 	}
 
-	if !MatchesTemplate(inputJSONMap, templateLogInRequest) {
-		InvalidInputResponse(w, "invalid JSON parameters")
+	account, err := data.LoginAttempt(inputMap["username"].(string), (inputMap["password"].(string)))
+	if err != nil {
+		InvalidInput(w, err.Error())
 		return
 	}
 
-	account, err := data.LoginAttempt(inputJSONMap["username"].(string), (inputJSONMap["password"].(string)))
+	id, err := strconv.Atoi(account["id"])
 	if err != nil {
-		InvalidInputResponse(w, err.Error())
+		ServerError(w, err.Error())
 		return
 	}
+	token, err := data.CreateSession(int64(id))
+	if err != nil {
+		ServerError(w, err.Error())
+		return
+	}
+	w.Header().Set(apiTokenKey, token)
 
 	output := templateLoginSuccess{}
 	output.Status = true

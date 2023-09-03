@@ -36,7 +36,7 @@ type templateLoginSuccess struct {
 type templateUserData struct {
 	Status bool `json:"status"`
 	Result struct {
-		ID       int    `json:"id"`
+		ID       int64  `json:"id"`
 		Username string `json:"username"`
 		Name     string `json:"name"`
 		Surname  string `json:"surname"`

@@ -2,64 +2,62 @@ package controller
 
 import (
 	"encoding/json"
-	"io"
 	"loginsystem/data"
 	"net/http"
 	"reflect"
-	"strconv"
 )
 
 func Rename(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-type", "application/json; charset=utf-8")
+
+	token, verified := verifyToken(w, r)
+	if !verified {
+		return
+	}
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json; charset=utf-8")
-
-	inputJSON, err := io.ReadAll(r.Body)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	inputMap, exists := getMap(w, r)
+	if !exists {
 		return
 	}
 
-	inputJSONMap, err := JSONtoMap(inputJSON)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
-		return
-	}
+	/*
+		username, exists := inputJSONMap["username"]
+		if !exists {
+			InvalidInput(w, "invalid JSON parameters")
+		}
+		password, exists := inputJSONMap["password"]
+		if !exists {
+			InvalidInput(w, "invalid JSON parameters")
+		}
 
-	username, exists := inputJSONMap["username"]
-	if !exists {
-		InvalidInputResponse(w, "invalid JSON parameters")
-	}
-	password, exists := inputJSONMap["password"]
-	if !exists {
-		InvalidInputResponse(w, "invalid JSON parameters")
-	}
+		account, err := data.LoginAttempt(username.(string), password.(string))
+		if err != nil {
+			InvalidInput(w, err.Error())
+			return
+		}
+	*/
 
-	account, err := data.LoginAttempt(username.(string), password.(string))
+	id, err := data.TokenToID(token)
 	if err != nil {
-		InvalidInputResponse(w, err.Error())
+		InvalidInput(w, err.Error())
 		return
 	}
 
 	dataMap := make(map[string]string)
-	name, exists := inputJSONMap["name"]
+	name, exists := inputMap["name"]
 	if exists && (reflect.TypeOf(name) == reflect.TypeOf("")) {
 		dataMap["name"] = name.(string)
 	}
-	surname, exists := inputJSONMap["surname"]
+	surname, exists := inputMap["surname"]
 	if exists && (reflect.TypeOf(surname) == reflect.TypeOf("")) {
 		dataMap["surname"] = surname.(string)
 	}
-
-	id, err := strconv.Atoi(account["id"])
-	if err != nil {
-		ServerError(w, err.Error())
-		return
-	}
-	account, err = data.UpdateUser(id, dataMap)
+	account, err := data.UpdateUser(id, dataMap)
 	if err != nil {
 		ServerError(w, err.Error())
 		return

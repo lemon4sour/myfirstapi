@@ -16,5 +16,6 @@ func main() {
 	sm.Handle("/gameresult", http.HandlerFunc(controller.GameResult))
 	sm.Handle("/leaderboard", http.HandlerFunc(controller.Leaderboard))
 	sm.Handle("/simulate", http.HandlerFunc(controller.Simulate))
+	sm.Handle("/logout", http.HandlerFunc(controller.LogOut))
 	http.ListenAndServe(port, sm)
 }

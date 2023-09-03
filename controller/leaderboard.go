@@ -2,42 +2,39 @@ package controller
 
 import (
 	"encoding/json"
-	"io"
 	"loginsystem/data"
 	"net/http"
 )
 
 func Leaderboard(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 
-	inputJSON, err := io.ReadAll(r.Body)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	_, verified := verifyToken(w, r)
+	if !verified {
 		return
 	}
 
-	inputJSONMap, err := JSONtoMap(inputJSON)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	if r.Method != http.MethodPost {
+		methodNotAllowed(w)
 		return
 	}
 
-	if !MatchesTemplate(inputJSONMap, templateLeaderboardRequest) {
-		InvalidInputResponse(w, "invalid JSON parameters")
+	inputMap, exists := getMap(w, r)
+	if !exists {
 		return
 	}
 
-	page := int(inputJSONMap["page"].(float64))
-	count := int(inputJSONMap["count"].(float64))
+	if !MatchesTemplate(inputMap, templateLeaderboardRequest) {
+		InvalidInput(w, "invalid JSON parameters")
+		return
+	}
+
+	page := int(inputMap["page"].(float64))
+	count := int(inputMap["count"].(float64))
 
 	leaderboardList, err := data.LeaderboardPage(page, count)
 	if err != nil {
-		InvalidInputResponse(w, err.Error())
+		InvalidInput(w, err.Error())
 		return
 	}
 

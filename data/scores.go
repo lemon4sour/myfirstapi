@@ -5,12 +5,16 @@ import (
 	"strconv"
 )
 
+func Log(id int64, status string) {
+	redisDB.LPush(ctx, "user:"+strconv.FormatInt(id, 10)+":history", status)
+}
+
 func AddScore(id int64, score float64) {
-	client.ZIncrBy(ctx, "users:leaderboard", score, strconv.FormatInt(int64(id), 10))
+	redisDB.ZIncrBy(ctx, "users:leaderboard", score, strconv.FormatInt(int64(id), 10))
 }
 
 func FetchScore(id int64) float64 {
-	out, _ := client.ZScore(ctx, "users:leaderboard", strconv.FormatInt(int64(id), 10)).Result()
+	out, _ := redisDB.ZScore(ctx, "users:leaderboard", strconv.FormatInt(int64(id), 10)).Result()
 	return out
 }
 
@@ -26,7 +30,7 @@ func LeaderboardPage(page int, count int) ([]LeaderboardPlacement, error) {
 	}
 
 	pageindex := page * count
-	result, err := client.ZRevRangeWithScores(ctx, "users:leaderboard", int64(pageindex), int64(pageindex+count-1)).Result()
+	result, err := redisDB.ZRevRangeWithScores(ctx, "users:leaderboard", int64(pageindex), int64(pageindex+count-1)).Result()
 	if err != nil {
 		return nil, err
 	}

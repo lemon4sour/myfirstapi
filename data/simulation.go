@@ -20,17 +20,19 @@ func generateName() string {
 }
 
 func GenerateUser() (int64, error) {
-	newUser := User{}
+	u := User{}
 
 	id, err := generateID()
 	if err != nil {
 		return 0, err
 	}
-	newUser.Username = "player_" + strconv.FormatInt(id, 10)
-	newUser.Password = constantEncryptedPassword
-	newUser.Name = generateName()
-	newUser.Surname = generateName()
+	u.Username = "player_" + strconv.FormatInt(id, 10)
+	u.Password = constantEncryptedPassword
+	u.Name = generateName()
+	u.Surname = generateName()
 
-	uploadUser(newUser)
+	if err := uploadUser(u); err != nil {
+		return 0, err
+	}
 	return id, nil
 }

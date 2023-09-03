@@ -2,52 +2,51 @@ package controller
 
 import (
 	"encoding/json"
-	"io"
 	"loginsystem/data"
 	"net/http"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
+		methodNotAllowed(w)
 		return
 	}
 
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 
-	inputJSON, err := io.ReadAll(r.Body)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
+	inputMap, exists := getMap(w, r)
+	if !exists {
 		return
 	}
 
-	inputJSONMap, err := JSONtoMap(inputJSON)
-	if err != nil {
-		InvalidInputResponse(w, err.Error())
-		return
-	}
-
-	if !MatchesTemplate(inputJSONMap, templateRegisterRequest) {
-		InvalidInputResponse(w, "invalid JSON parameters")
+	if !MatchesTemplate(inputMap, templateRegisterRequest) {
+		InvalidInput(w, "invalid JSON parameters")
 		return
 	}
 
 	user := data.User{}
-	user.Username = inputJSONMap["username"].(string)
-	user.Password = ([]byte)(inputJSONMap["password"].(string))
-	user.Name = inputJSONMap["name"].(string)
-	user.Surname = inputJSONMap["surname"].(string)
+	user.Username = inputMap["username"].(string)
+	user.Password = ([]byte)(inputMap["password"].(string))
+	user.Name = inputMap["name"].(string)
+	user.Surname = inputMap["surname"].(string)
 
 	id, err := data.AddUser(user)
 	if err != nil {
-		InvalidInputResponse(w, err.Error())
+		InvalidInput(w, err.Error())
 		return
 	}
+
+	token, err := data.CreateSession(id)
+	if err != nil {
+		ServerError(w, err.Error())
+		return
+	}
+	w.Header().Set(apiTokenKey, token)
 
 	output := templateRegisterSuccess{}
 	output.Status = true
 	output.Result.ID = int(id)
-	output.Result.Username = inputJSONMap["username"].(string)
+	output.Result.Username = inputMap["username"].(string)
 
 	outputJSON, err := json.Marshal(output)
 	if err != nil {

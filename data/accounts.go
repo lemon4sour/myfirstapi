@@ -13,7 +13,7 @@ type User struct {
 }
 
 func generateID() (int64, error) {
-	return client.Incr(ctx, "users:count").Result()
+	return redisDB.Incr(ctx, "users:count").Result()
 }
 
 func AddUser(u User) (int64, error) {
@@ -34,12 +34,14 @@ func AddUser(u User) (int64, error) {
 	}
 	u.ID = id
 
-	uploadUser(u)
+	if err := uploadUser(u); err != nil {
+		return 0, err
+	}
 	return id, nil
 }
 
 func fetchID(username string) (int64, error) {
-	id, err := client.Get(ctx, "user:"+username+":id").Result()
+	id, err := redisDB.Get(ctx, "user:"+username+":id").Result()
 	if err != nil {
 		return 0, err
 	}
@@ -48,14 +50,14 @@ func fetchID(username string) (int64, error) {
 }
 
 func FetchUser(id int64) (map[string]string, error) {
-	return client.HGetAll(ctx, "user:"+strconv.FormatInt(int64(id), 10)).Result()
+	return redisDB.HGetAll(ctx, "user:"+strconv.FormatInt(int64(id), 10)).Result()
 }
 
-func UpdateUser(id int, data map[string]string) (map[string]string, error) {
+func UpdateUser(id int64, data map[string]string) (map[string]string, error) {
 	key := "user:" + strconv.FormatInt(int64(id), 10)
-	_, err := client.HSet(ctx, key, data).Result()
+	_, err := redisDB.HSet(ctx, key, data).Result()
 	if err != nil {
 		return nil, err
 	}
-	return client.HGetAll(ctx, key).Result()
+	return redisDB.HGetAll(ctx, key).Result()
 }
